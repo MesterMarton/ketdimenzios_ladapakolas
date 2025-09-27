@@ -7,7 +7,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 # from Classes.Measurement import Measurement
-# from Classes.SettingsWindow import SettingsWindow
+from Classes.Benchmark2 import SettingsWindow
 # from Classes.InstrumentWindow import InstrumentWindow
 # from Classes.DatabaseWindow import DatabaseWindow
 
@@ -28,8 +28,13 @@ class AppFrame(ttk.Frame):
             tearoff=0
         )
 
+        self.master.menubar.add_cascade(
+            label="Fájl importálás",
+            menu=self.prev_mes_menu
+        )
+
         self.prev_mes_menu.add_command(
-            label="From txt",
+            label="Txt-ből",
             # image=self.file_icon,
             compound="left",
             command = self.__import_from_txt,
@@ -37,27 +42,24 @@ class AppFrame(ttk.Frame):
         )
 
         self.prev_mes_menu.add_command(
-            label="From database",
+            label="Adatbázisból",
            # image=self.db_icon,
             compound="left",
           #  command = self.__display_import_from_database_window,
             font=("", 9)
         )
 
-    #     self.master.menubar.add_command(
-    #         label="Settings",
-    #         command=self.__display_settings_window
-    #     )
+        self.master.menubar.add_command(
+            label="Settings",
+            command=self.__display_settings_window
+        )
 
     #     self.master.menubar.add_command(
     #         label="Add instruments",
     #         command=self.__display_instrument_window
     #     )
 
-        self.master.menubar.add_cascade(
-            label="Previous measurement",
-            menu=self.prev_mes_menu
-        )
+        
 
     #     self.master.menubar.add_command(
     #         label="Exit",
@@ -66,11 +68,12 @@ class AppFrame(ttk.Frame):
 
     #     self.__display_graphs()
 
-    # # def __display_settings_window(self):
-    # #     settings_window = SettingsWindow(self, on_data_return=self.receive_settings_data)
-    # #     settings_window.grab_set()
-    # #     settings_window.focus()
-    # #     self.wait_window(settings_window)
+    def __display_settings_window(self):
+      #   settings_window = SettingsWindow(self, on_data_return=self.receive_settings_data)
+        settings_window = SettingsWindow(self)
+        settings_window.grab_set()
+        settings_window.focus()
+        self.wait_window(settings_window)
 
     # # def __display_instrument_window(self):
     # #     settings_window = InstrumentWindow(self, on_data_return=self.receive_instruments_data)
