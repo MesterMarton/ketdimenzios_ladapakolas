@@ -113,8 +113,8 @@ class AppFrame(ttk.Frame):
             return
         messagebox.showinfo("Indítás", "Az algoritmus elindult!")
         if self.algorithm == "heuristic":
-            # a = HeuristicSolver( self.squares, self.option)
-            a = HeuristicSolver([Square(5), Square(3), Square(7), Square(2), Square(6)], self.option)
+            a = HeuristicSolver( self.squares, self.option)
+            # a = HeuristicSolver([Square(5), Square(3), Square(7), Square(2), Square(6)], self.option)
             a.run()
             # self.__display_bins(a.bins)
             print(f"Number of bins used: {len(a.bins)}")

@@ -12,7 +12,7 @@ class SettingsWindow(tk.Toplevel):
         
         self.title("Beállítások")
         window_width = 460
-        window_height = 320
+        window_height = 230
         
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
@@ -21,7 +21,7 @@ class SettingsWindow(tk.Toplevel):
         position_height = int(screen_height / 2 - window_height / 2)
         
         self.geometry(f"{window_width}x{window_height}+{position_width}+{position_height}")
-        self.minsize(420, 300)
+        self.minsize(420, 210)
 
         self.on_data_return = on_data_return
         

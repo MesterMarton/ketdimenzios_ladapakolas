@@ -25,6 +25,7 @@ class HeuristicSolver:
        for square in self.squares:
             if not(bin.find_empty_place(square)):
                 bin = Bin(len(self.bins)+1)
+                self.bins.append(bin)
                 bin.find_empty_place(square)
             
 

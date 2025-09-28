@@ -34,7 +34,7 @@ class Bin:
                     max_size = max(max_size, size)
         return max_size
     
-    def write_space_matrix(self):
-        for row in self.space_matrix:
-            print(' '.join(['1' if cell else '0' for cell in row]))
-        print()
+    # def write_space_matrix(self):
+    #     for row in self.space_matrix:
+    #         print(' '.join(['1' if cell else '0' for cell in row]))
+    #     print()
