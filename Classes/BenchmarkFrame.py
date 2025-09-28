@@ -89,22 +89,3 @@ class BenchmarkFrame(ttk.Frame):
 
         new_benchmark.create_folder()
         new_benchmark.create_inputs()
-
-
-        # mesaurement_thread = Thread(target=lambda: self.__meres())
-        # mesaurement_thread.start()
-            
-        # self.__monitor(mesaurement_thread)
-
-
-    def choose_file(self):
-        file_path = filedialog.asksaveasfilename(
-            title="Mentés ide",
-            defaultextension=".txt",
-            filetypes=[("Text files", "*.txt"), ("All files", "*.*")]
-        )
-        if file_path:
-            self.file_path = file_path
-            print("Kiválasztott mentési hely:", self.file_path)
-        else:
-            print("Nem lett mentési hely kiválasztva.")

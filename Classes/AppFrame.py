@@ -2,10 +2,13 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import PhotoImage
 from tkinter import filedialog
+from tkinter import messagebox
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from pyparsing import Path
 
+from Classes.Square import Square
 from Classes.Benchmark2 import SettingsWindow
 from Classes.BenchmarkWindow import BenchmarkWindow
 
@@ -47,6 +50,11 @@ class AppFrame(ttk.Frame):
             font=("", 9)
         )
 
+        self.imported_squares_label = ttk.Label(
+            self.master,
+            text="Importált négyzetek:"
+        )
+        self.imported_squares_label.pack(side=tk.TOP, anchor="w", padx=10, pady=5)
        
 
         self.master.menubar.add_command(
@@ -129,6 +137,7 @@ class AppFrame(ttk.Frame):
     #     self.__update_graphs(LEDFeszTomb, LEDCurrentArray, PhotoCurrentArray)
 
     def __display_graphs(self):
+
         self.plot_frame = tk.Frame(self.master)
         self.plot_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
@@ -221,6 +230,7 @@ class AppFrame(ttk.Frame):
 
     def __import_from_txt(self):
         file_path = filedialog.askopenfilename(
+            initialdir=Path(__file__).parent.parent/"inputs",
             title="Import from .txt",
             filetypes=[("Text files", "*.txt"), ("All files", "*.*")]
         )
@@ -228,14 +238,38 @@ class AppFrame(ttk.Frame):
             try:
                 with open(file_path, "r", encoding="utf-8") as file:
                     content = file.read()
-                print("A kiválasztott fájl tartalma:")
-                print(content)
-                self.convertToVisualizationFormat(content)
-            except Exception as e:
-                print("Hiba történt a fájl beolvasása során:", e)
-        else:
-            print("Nem lett fájl kiválasztva.")
 
+                proceed = messagebox.askyesno(
+                    title="Fájl beolvasva",
+                    message=f"A {file_path} fájl kiválasztása sikeres volt.\nSzeretné ezeket az adatokat betölteni?"
+                )
+                # Ha a felhasználó az IGEN-t nyomta
+                if proceed:
+                    self.create_squares(content)
+                # print("A kiválasztott fájl tartalma:")
+                # print(content)
+                # self.convertToVisualizationFormat(content)
+            except Exception as e:
+                messagebox.showinfo("Error","Hiba történt a fájl beolvasása során:", e)
+        # else:
+        #     messagebox.showinfo("Figyelmeztetés","Nem lett fájl kiválasztva.")
+
+    def create_squares(self, content):
+        lines = content.splitlines()
+        self.squares = []
+        for line in lines:
+            try:
+                size = int(line.strip())
+                if size > 0:
+                    square = Square(size)
+                    self.squares.append(square)
+            except ValueError:
+                messagebox(f"Hiba történt a betöltés során!")
+        # print(f"{len(self.squares)} négyzet lett létrehozva.")
+        sizes = ""
+        for square in self.squares:
+            sizes += f"{square.size} "
+        self.imported_squares_label.config(text=f"Importált négyzetek: {sizes}")
     def convertToVisualizationFormat(self, content):
         # Az adatok feldolgozása:
         lines = content.splitlines()
