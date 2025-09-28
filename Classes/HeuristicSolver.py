@@ -15,13 +15,19 @@ class HeuristicSolver:
         
     def run(self):
         self.sort_squares_by_size()
-        if self.option == "first_fit":
+     #   print("Selected algorithm:", self.option)
+        if self.option == "First Fit Decreasing":
             self.first_fit()
 
     def first_fit(self):
-       bin = Bin("Bin1", 0)
-       self.bins
+       bin = Bin(1)
+       self.bins.append(bin)
        for square in self.squares:
-           if not(bin.find_empyt_place(square)):
-                bin = Bin(f"Bin{len(self.bins)+1}", 0)
-                bin.find_empyt_place(square)
+            if not(bin.find_empty_place(square)):
+                bin = Bin(len(self.bins)+1)
+                bin.find_empty_place(square)
+            
+
+# h = HeuristicSolver([Square(5), Square(3), Square(7), Square(2), Square(6)], "first_fit")
+# h.run()
+# print(f"Number of bins used: {len(h.bins)}")

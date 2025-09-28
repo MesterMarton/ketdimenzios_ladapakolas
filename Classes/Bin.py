@@ -1,21 +1,21 @@
 import numpy as np
 
 # láda mérete statikus még
-
 class Bin:
-    def __init__(self, name, value):
-        self.name = name
-        self.value = value
+    def __init__(self, id):
+        self.id = id
+        self.squares = []
         self.space_matrix = np.full((20, 20), True, dtype=bool)
 
     # szabad hely keresése a mátrixban
-    def find_empyt_place(self, square):
+    def find_empty_place(self, square):
         size = square.size
         for i in range(self.space_matrix.shape[0] - size + 1):
             for j in range(self.space_matrix.shape[1] - size + 1):
                 if np.all(self.space_matrix[i:i+size, j:j+size]):
                     self.space_matrix[i:i+size, j:j+size] = False
                     square.set_position(j, i)
+                    self.squares.append(square)
                     return True
         return False
     
@@ -33,3 +33,8 @@ class Bin:
                         size += 1
                     max_size = max(max_size, size)
         return max_size
+    
+    def write_space_matrix(self):
+        for row in self.space_matrix:
+            print(' '.join(['1' if cell else '0' for cell in row]))
+        print()

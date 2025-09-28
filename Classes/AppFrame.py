@@ -113,33 +113,57 @@ class AppFrame(ttk.Frame):
             return
         messagebox.showinfo("Indítás", "Az algoritmus elindult!")
         if self.algorithm == "heuristic":
-            a = HeuristicSolver( self.squares, self.option)
+            # a = HeuristicSolver( self.squares, self.option)
+            a = HeuristicSolver([Square(5), Square(3), Square(7), Square(2), Square(6)], self.option)
             a.run()
+            # self.__display_bins(a.bins)
+            print(f"Number of bins used: {len(a.bins)}")
             self.__display_bins(a.bins)
 
         # else if self.algorithm == "genetic":
 
-    def __display_bins(self, bins = None):
-
-        self.plot_frame = tk.Frame(self.master)
-        self.plot_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-
-        # Egy matplotlib Figure létrehozása egyetlen subplot-tal
-        self.fig = Figure(figsize=(6, 6))
-        self.ax1 = self.fig.add_subplot(111)
-
-        # Üres koordinátarendszer beállítása
+    def __display_bins(self, bins=None):
         bin_size = 20
+
+        # Ha még nincs canvas / figure, hozzuk létre egyszer
+        if not hasattr(self, "canvas"):
+            self.plot_frame = tk.Frame(self.master)
+            self.plot_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+            self.fig = Figure(figsize=(6, 6))
+            self.ax1 = self.fig.add_subplot(111)
+            self.ax1.set_xlim(0, bin_size)
+            self.ax1.set_ylim(0, bin_size)
+            self.ax1.set_aspect("equal")
+            self.ax1.set_title("Ládapakolás ábrázolása:")
+          #   self.ax1.grid(True)
+
+            self.canvas = FigureCanvasTkAgg(self.fig, master=self.plot_frame)
+            self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+        # Töröljük a korábbi rajzokat
+        self.ax1.cla()
         self.ax1.set_xlim(0, bin_size)
         self.ax1.set_ylim(0, bin_size)
         self.ax1.set_aspect("equal")
         self.ax1.set_title("Ládapakolás ábrázolása:")
-        self.ax1.grid(True)
+        # self.ax1.grid(True)
 
-        # Canvas beillesztése a Tkinter Frame-be
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self.plot_frame)
+        # Négyzetek / ládák rajzolása
+        if bins:
+            for bin in bins:
+                for square in bin.squares:
+                    rect = plt.Rectangle(
+                        (square.x, square.y),
+                        square.size, square.size,
+                        facecolor="blue",
+                        edgecolor="black"
+                    )
+                    self.ax1.add_patch(rect)
+
+        # Frissítés
         self.canvas.draw()
-        self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
 
     def __import_from_txt(self):
         file_path = filedialog.askopenfilename(
