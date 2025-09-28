@@ -4,6 +4,7 @@ class Square:
         self.x = 0
         self.y = 0
 
-    def set_position(self, x, y):
-        self.x = x
+    def set_position(self, x, y, bin_id):
+        # print(bin_id)
+        self.x = x + bin_id * 20 - 20
         self.y = y

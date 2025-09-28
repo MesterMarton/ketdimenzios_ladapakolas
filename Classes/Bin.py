@@ -14,7 +14,7 @@ class Bin:
             for j in range(self.space_matrix.shape[1] - size + 1):
                 if np.all(self.space_matrix[i:i+size, j:j+size]):
                     self.space_matrix[i:i+size, j:j+size] = False
-                    square.set_position(j, i)
+                    square.set_position(j, i, self.id)
                     self.squares.append(square)
                     return True
         return False

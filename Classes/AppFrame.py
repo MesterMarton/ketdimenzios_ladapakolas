@@ -123,7 +123,10 @@ class AppFrame(ttk.Frame):
         # else if self.algorithm == "genetic":
 
     def __display_bins(self, bins=None):
-        bin_size = 20
+        if bins is None:
+            bin_size = 20
+        else:
+            bin_size = 20 * len(bins)
 
         # Ha még nincs canvas / figure, hozzuk létre egyszer
         if not hasattr(self, "canvas"):
@@ -149,8 +152,17 @@ class AppFrame(ttk.Frame):
         self.ax1.set_title("Ládapakolás ábrázolása:")
         # self.ax1.grid(True)
 
-        # Négyzetek / ládák rajzolása
         if bins:
+
+            for i in range(len(bins)):
+                bin_rect = plt.Rectangle(
+                    (i * 20, 0),  
+                    20, 20,       
+                    facecolor="none",  
+                    edgecolor="black",
+                    linewidth=2
+                )
+                self.ax1.add_patch(bin_rect)
             for bin in bins:
                 for square in bin.squares:
                     rect = plt.Rectangle(
@@ -160,8 +172,6 @@ class AppFrame(ttk.Frame):
                         edgecolor="black"
                     )
                     self.ax1.add_patch(rect)
-
-        # Frissítés
         self.canvas.draw()
 
 
