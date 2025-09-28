@@ -11,8 +11,8 @@ class BenchmarkWindow(tk.Toplevel):
         windll.user32.SetThreadDpiAwarenessContext(wintypes.HANDLE(-4))
         
         self.title("Új benchmark létrehozása")
-        window_width = 460
-        window_height = 320
+        window_width = 400
+        window_height = 220
         
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
@@ -21,7 +21,7 @@ class BenchmarkWindow(tk.Toplevel):
         position_height = int(screen_height / 2 - window_height / 2)
         
         self.geometry(f"{window_width}x{window_height}+{position_width}+{position_height}")
-        self.minsize(420, 300)
+        self.minsize(400, 210)
         
    #     SettingsFrame(self, on_data_return=on_data_return)
         BenchmarkFrame(self)
