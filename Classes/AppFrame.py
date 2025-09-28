@@ -161,6 +161,11 @@ class AppFrame(ttk.Frame):
         self.ax1.set_title("Ládapakolás ábrázolása:")
         # self.ax1.grid(True)
 
+        # self.ax1.invert_xaxis()
+        # self.ax1.invert_yaxis()
+        self.ax1.invert_yaxis()
+
+
         base_colors = ['blue', 'green', 'orange', 'gray', 'brown', 'yellow',"red"]
         color_iterator = iter(base_colors)
 
