@@ -10,7 +10,7 @@ class SettingsWindow(tk.Toplevel):
         
         windll.user32.SetThreadDpiAwarenessContext(wintypes.HANDLE(-4))
         
-        self.title("Settings")
+        self.title("Beállítások")
         window_width = 460
         window_height = 320
         

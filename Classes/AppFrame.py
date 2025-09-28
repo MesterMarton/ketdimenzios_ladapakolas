@@ -9,7 +9,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from pyparsing import Path
 
 from Classes.Square import Square
-from Classes.Benchmark2 import SettingsWindow
+from Classes.SettingsWindow import SettingsWindow
 from Classes.BenchmarkWindow import BenchmarkWindow
 
 class AppFrame(ttk.Frame):
