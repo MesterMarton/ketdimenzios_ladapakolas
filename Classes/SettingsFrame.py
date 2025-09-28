@@ -1,4 +1,3 @@
-
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
@@ -11,7 +10,7 @@ from Classes.HeuristicSolver import HeuristicSolver
 
 class SettingsFrame(ttk.Frame):
  #   def __init__(self, container, on_data_return):
-    def __init__(self, container):
+    def __init__(self, container, on_data_return=None):
         super().__init__(
             container,
             padding = (0, 0, 0, 0)
@@ -22,6 +21,8 @@ class SettingsFrame(ttk.Frame):
             text="Válassza ki az algoritmust:",
             font=("Arial", 12, "bold")
         )
+
+        self.on_data_return = on_data_return
         self.title_label.pack(side=tk.TOP, anchor="w", pady=(0, 10))
 
         # --- Választó változó ---
@@ -81,6 +82,9 @@ class SettingsFrame(ttk.Frame):
     def on_apply(self):
         print("Kiválasztott algoritmus:", self.algorithm_var.get())
         print("Kiválasztott opció a listából:", self.combobox_var.get())
+
+        if self.on_data_return:
+            self.on_data_return(self.algorithm_var.get(), self.combobox_var.get())
 
         # if self.algorithm_var.get() == "heuristic":
         #     a = HeuristicSolver(self.combobox_var.get())

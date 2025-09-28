@@ -87,7 +87,7 @@ class AppFrame(ttk.Frame):
 
     def __display_settings_window(self):
       #   settings_window = SettingsWindow(self, on_data_return=self.receive_settings_data)
-        settings_window = SettingsWindow(self)
+        settings_window = SettingsWindow(self, on_data_return=self.receive_settings_data)
         settings_window.grab_set()
         settings_window.focus()
         self.wait_window(settings_window)
@@ -97,6 +97,14 @@ class AppFrame(ttk.Frame):
         benchmark_window.grab_set()
         benchmark_window.focus()
         self.wait_window(benchmark_window)
+
+    def receive_settings_data(self, algorithm, option):
+        # Frissítjük a Labelt
+        self.choosed_algorithm_label.config(
+            text=f"Kiválasztott algoritmus: {algorithm}, Opció: {option}"
+        )
+        print("AppFrame megkapta:", algorithm, option)
+
 
 
     # # def __display_instrument_window(self):
