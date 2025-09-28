@@ -6,10 +6,8 @@ from tkinter import filedialog
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-# from Classes.Measurement import Measurement
 from Classes.Benchmark2 import SettingsWindow
-# from Classes.InstrumentWindow import InstrumentWindow
-# from Classes.DatabaseWindow import DatabaseWindow
+from Classes.BenchmarkWindow import BenchmarkWindow
 
 class AppFrame(ttk.Frame):
     def __init__(self, container):
@@ -29,44 +27,46 @@ class AppFrame(ttk.Frame):
         )
 
         self.master.menubar.add_cascade(
-            label="Fájl importálás",
+            label="Fájl",
             menu=self.prev_mes_menu
         )
 
         self.prev_mes_menu.add_command(
-            label="Txt-ből",
+            label="Új",
+           # image=self.db_icon,
+            compound="left",
+            command = self.__create_new_benchmark,
+            font=("", 9)
+        )
+
+        self.prev_mes_menu.add_command(
+            label="Megnyitás",
             # image=self.file_icon,
             compound="left",
             command = self.__import_from_txt,
             font=("", 9)
         )
 
-        self.prev_mes_menu.add_command(
-            label="Adatbázisból",
-           # image=self.db_icon,
-            compound="left",
-          #  command = self.__display_import_from_database_window,
-            font=("", 9)
-        )
+       
 
         self.master.menubar.add_command(
-            label="Settings",
+            label="Beállítások",
             command=self.__display_settings_window
         )
 
-    #     self.master.menubar.add_command(
-    #         label="Add instruments",
-    #         command=self.__display_instrument_window
-    #     )
+        self.master.menubar.add_command(
+            label="Leállítás",
+          #   command=self.__display_instrument_window
+        )
 
         
 
-    #     self.master.menubar.add_command(
-    #         label="Exit",
-    #         command=self.master.destroy
-    #     )
+        self.master.menubar.add_command(
+            label="Kilépés",
+            command=self.master.destroy
+        )
 
-    #     self.__display_graphs()
+        self.__display_graphs()
 
     def __display_settings_window(self):
       #   settings_window = SettingsWindow(self, on_data_return=self.receive_settings_data)
@@ -74,6 +74,13 @@ class AppFrame(ttk.Frame):
         settings_window.grab_set()
         settings_window.focus()
         self.wait_window(settings_window)
+
+    def __create_new_benchmark(self):
+        benchmark_window = BenchmarkWindow(self)
+        benchmark_window.grab_set()
+        benchmark_window.focus()
+        self.wait_window(benchmark_window)
+
 
     # # def __display_instrument_window(self):
     # #     settings_window = InstrumentWindow(self, on_data_return=self.receive_instruments_data)
@@ -121,44 +128,44 @@ class AppFrame(ttk.Frame):
 
     #     self.__update_graphs(LEDFeszTomb, LEDCurrentArray, PhotoCurrentArray)
 
-    # def __display_graphs(self):
-    #     self.plot_frame = tk.Frame(self.master)
-    #     self.plot_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+    def __display_graphs(self):
+        self.plot_frame = tk.Frame(self.master)
+        self.plot_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-    #     # Egy matplotlib Figure létrehozása három subplot-tal (egy oszlopban elrendezve)
-    #     self.fig = Figure(figsize=(8, 10))
-    #     self.fig.tight_layout()
-    #     self.fig.subplots_adjust(hspace=0.5)
-    #     self.ax1 = self.fig.add_subplot(311)
-    #     self.ax2 = self.fig.add_subplot(312)
-    #     self.ax3 = self.fig.add_subplot(313)
+        # Egy matplotlib Figure létrehozása három subplot-tal (egy oszlopban elrendezve)
+        self.fig = Figure(figsize=(8, 10))
+        self.fig.tight_layout()
+        self.fig.subplots_adjust(hspace=0.5)
+        self.ax1 = self.fig.add_subplot(311)
+        self.ax2 = self.fig.add_subplot(312)
+        self.ax3 = self.fig.add_subplot(313)
 
-    #     # 1. Grafikon: LED feszültség vs. LED áram (I-V karakterisztika)
-    #     self.ax1.set_xlabel("LED feszültség [V]")
-    #     self.ax1.set_ylabel("LED áram [A]")
-    #     self.ax1.set_title("LED I-V karakterisztika")
-    #     self.ax1.grid(True)
+        # 1. Grafikon: LED feszültség vs. LED áram (I-V karakterisztika)
+        self.ax1.set_xlabel("LED feszültség [V]")
+        self.ax1.set_ylabel("LED áram [A]")
+        self.ax1.set_title("LED I-V karakterisztika")
+        self.ax1.grid(True)
 
-    #     # 2. Grafikon: LED feszültség vs. Detektor áram (fényintenzitás karakterisztika)
-    #     self.ax2.set_xlabel("LED feszültség [V]")
-    #     self.ax2.set_ylabel("Detektor áram [A]")
-    #     self.ax2.set_title("LED fényintenzitás karakterisztika")
-    #     self.ax2.grid(True)
+        # 2. Grafikon: LED feszültség vs. Detektor áram (fényintenzitás karakterisztika)
+        self.ax2.set_xlabel("LED feszültség [V]")
+        self.ax2.set_ylabel("Detektor áram [A]")
+        self.ax2.set_title("LED fényintenzitás karakterisztika")
+        self.ax2.grid(True)
 
-    #     # 3. Grafikon: LED áram vs. Detektor áram
-    #     self.ax3.set_xlabel("LED áram [A]")
-    #     self.ax3.set_ylabel("Detektor áram [A]")
-    #     self.ax3.set_title("LED áram - Detektor áram karakterisztika")
-    #     self.ax3.grid(True)
+        # 3. Grafikon: LED áram vs. Detektor áram
+        self.ax3.set_xlabel("LED áram [A]")
+        self.ax3.set_ylabel("Detektor áram [A]")
+        self.ax3.set_title("LED áram - Detektor áram karakterisztika")
+        self.ax3.grid(True)
 
-    #     self.line1, = self.ax1.plot([], [], marker='o', linestyle='-')
-    #     self.line2, = self.ax2.plot([], [], marker='s', color='r', linestyle='-')
-    #     self.line3, = self.ax3.plot([], [], marker='^', color='g', linestyle='-')
+        self.line1, = self.ax1.plot([], [], marker='o', linestyle='-')
+        self.line2, = self.ax2.plot([], [], marker='s', color='r', linestyle='-')
+        self.line3, = self.ax3.plot([], [], marker='^', color='g', linestyle='-')
 
 
-    #     self.canvas = FigureCanvasTkAgg(self.fig, master=self.plot_frame)
-    #     self.canvas.draw()
-    #     self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.plot_frame)
+        self.canvas.draw()
+        self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
     # def update_live_plot(self, LEDFeszTomb, LEDCurrentArray, PhotoCurrentArray):
     #     # Frissítjük az egyes vonalak adatait
