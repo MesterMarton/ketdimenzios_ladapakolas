@@ -161,6 +161,9 @@ class AppFrame(ttk.Frame):
         self.ax1.set_title("Ládapakolás ábrázolása:")
         # self.ax1.grid(True)
 
+        base_colors = ['blue', 'green', 'orange', 'gray', 'brown', 'yellow',"red"]
+        color_iterator = iter(base_colors)
+
         if bins:
 
             for i in range(len(bins)):
@@ -174,10 +177,15 @@ class AppFrame(ttk.Frame):
                 self.ax1.add_patch(bin_rect)
             for bin in bins:
                 for square in bin.squares:
+                    try:
+                        color = next(color_iterator)
+                    except StopIteration:
+                        color_iterator = iter(base_colors)
+                        color = next(color_iterator)
                     rect = plt.Rectangle(
                         (square.x, square.y),
                         square.size, square.size,
-                        facecolor="blue",
+                        facecolor=color,
                         edgecolor="black"
                     )
                     self.ax1.add_patch(rect)
