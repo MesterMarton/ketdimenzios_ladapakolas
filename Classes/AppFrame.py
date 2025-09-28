@@ -85,6 +85,14 @@ class AppFrame(ttk.Frame):
 
         self.__display_bins()
 
+        self.extra_information_label = ttk.Label(
+            self.master,
+            anchor="center",
+            justify="center", 
+            text="Ládák száma: 0 "
+        )
+        self.extra_information_label.pack(side=tk.TOP, padx=10, pady=5)
+
     def __display_settings_window(self):
         settings_window = SettingsWindow(self, on_data_return=self.receive_settings_data)
         settings_window.grab_set()
