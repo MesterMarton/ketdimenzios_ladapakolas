@@ -4,6 +4,7 @@ from tkinter import PhotoImage
 from tkinter import filedialog
 from tkinter import messagebox
 
+from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from pyparsing import Path
@@ -51,13 +52,13 @@ class AppFrame(ttk.Frame):
 
         self.imported_squares_label = ttk.Label(
             self.master,
-            text="Importált négyzetek:"
+            text="Importált négyzetek: -"
         )
         self.imported_squares_label.pack(side=tk.TOP, anchor="w", padx=10, pady=5)
 
         self.choosed_algorithm_label = ttk.Label(
             self.master,
-            text="Kiválasztott algoritmus:"
+            text="Kiválasztott algoritmus: -"
         )
         self.choosed_algorithm_label.pack(side=tk.TOP, anchor="w", padx=10, pady=5)
        
@@ -82,7 +83,7 @@ class AppFrame(ttk.Frame):
             command=self.master.destroy
         )
 
-        self.__display_graphs()
+        self.__display_bins()
 
     def __display_settings_window(self):
         settings_window = SettingsWindow(self, on_data_return=self.receive_settings_data)
@@ -114,45 +115,28 @@ class AppFrame(ttk.Frame):
         if self.algorithm == "heuristic":
             a = HeuristicSolver( self.squares, self.option)
             a.run()
+            self.__display_bins(a.bins)
 
         # else if self.algorithm == "genetic":
 
-    def __display_graphs(self):
+    def __display_bins(self, bins = None):
 
         self.plot_frame = tk.Frame(self.master)
         self.plot_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-        # Egy matplotlib Figure létrehozása három subplot-tal (egy oszlopban elrendezve)
-        self.fig = Figure(figsize=(8, 10))
-        self.fig.tight_layout()
-        self.fig.subplots_adjust(hspace=0.5)
-        self.ax1 = self.fig.add_subplot(311)
-        self.ax2 = self.fig.add_subplot(312)
-        self.ax3 = self.fig.add_subplot(313)
+        # Egy matplotlib Figure létrehozása egyetlen subplot-tal
+        self.fig = Figure(figsize=(6, 6))
+        self.ax1 = self.fig.add_subplot(111)
 
-        # 1. Grafikon: LED feszültség vs. LED áram (I-V karakterisztika)
-        self.ax1.set_xlabel("LED feszültség [V]")
-        self.ax1.set_ylabel("LED áram [A]")
-        self.ax1.set_title("LED I-V karakterisztika")
+        # Üres koordinátarendszer beállítása
+        bin_size = 20
+        self.ax1.set_xlim(0, bin_size)
+        self.ax1.set_ylim(0, bin_size)
+        self.ax1.set_aspect("equal")
+        self.ax1.set_title("Ládapakolás ábrázolása:")
         self.ax1.grid(True)
 
-        # 2. Grafikon: LED feszültség vs. Detektor áram (fényintenzitás karakterisztika)
-        self.ax2.set_xlabel("LED feszültség [V]")
-        self.ax2.set_ylabel("Detektor áram [A]")
-        self.ax2.set_title("LED fényintenzitás karakterisztika")
-        self.ax2.grid(True)
-
-        # 3. Grafikon: LED áram vs. Detektor áram
-        self.ax3.set_xlabel("LED áram [A]")
-        self.ax3.set_ylabel("Detektor áram [A]")
-        self.ax3.set_title("LED áram - Detektor áram karakterisztika")
-        self.ax3.grid(True)
-
-        self.line1, = self.ax1.plot([], [], marker='o', linestyle='-')
-        self.line2, = self.ax2.plot([], [], marker='s', color='r', linestyle='-')
-        self.line3, = self.ax3.plot([], [], marker='^', color='g', linestyle='-')
-
-
+        # Canvas beillesztése a Tkinter Frame-be
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.plot_frame)
         self.canvas.draw()
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -199,38 +183,3 @@ class AppFrame(ttk.Frame):
         for square in self.squares:
             sizes += f"{square.size} "
         self.imported_squares_label.config(text=f"Importált négyzetek: {sizes}")
-
-    def convertToVisualizationFormat(self, content):
-        # Az adatok feldolgozása:
-        lines = content.splitlines()
-        for i in lines:
-            print(i)
-        if len(lines) < 2:
-            print("Nincs elegendő adat a megjelenítéshez!")
-            return
-
-        LEDCurrentArray = []
-        LEDFeszTomb = []
-        PhotoCurrentArray = []
-        # print(len(lines))
-        for line in lines[1:]:
-            parts = line.split("\t")
-            # print(len(parts))
-            # if len(parts) < 4:
-            #     continue
-            LEDCurrentArray.append(float(parts[1]))
-            LEDFeszTomb.append(float(parts[2]))
-            PhotoCurrentArray.append(float(parts[3]))
-
-            # print(float(parts[1]))
-            # print(float(parts[2]))
-            # print(float(parts[3]))
-
-        if not LEDCurrentArray or not LEDFeszTomb or not PhotoCurrentArray:
-            print("Nem sikerült az adatok feldolgozása!")
-            return
-
-        # # Ha esetleg már létezett korábbi grafikonokat tartalmazó frame, akkor azt töröljük
-        # if hasattr(self, "plot_frame") and self.plot_frame.winfo_exists():
-        #     self.plot_frame.destroy()
-        self.__update_graphs(LEDFeszTomb, LEDCurrentArray, PhotoCurrentArray)
