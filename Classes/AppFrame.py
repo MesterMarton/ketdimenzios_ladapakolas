@@ -125,7 +125,8 @@ class AppFrame(ttk.Frame):
             # a = HeuristicSolver([Square(5), Square(3), Square(7), Square(2), Square(6)], self.option)
             a.run()
             # self.__display_bins(a.bins)
-            print(f"Number of bins used: {len(a.bins)}")
+            # print(f"Number of bins used: {len(a.bins)}")
+            self.extra_information_label.config(text=f"Ládák száma: {len(a.bins)}")
             self.__display_bins(a.bins)
 
         # else if self.algorithm == "genetic":
