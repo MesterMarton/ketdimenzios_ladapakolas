@@ -55,6 +55,12 @@ class AppFrame(ttk.Frame):
             text="Importált négyzetek:"
         )
         self.imported_squares_label.pack(side=tk.TOP, anchor="w", padx=10, pady=5)
+
+        self.choosed_algorithm_label = ttk.Label(
+            self.master,
+            text="Kiválasztott algoritmus:"
+        )
+        self.choosed_algorithm_label.pack(side=tk.TOP, anchor="w", padx=10, pady=5)
        
 
         self.master.menubar.add_command(
@@ -63,11 +69,14 @@ class AppFrame(ttk.Frame):
         )
 
         self.master.menubar.add_command(
-            label="Leállítás",
+            label="Indítás",
           #   command=self.__display_instrument_window
         )
 
-        
+        self.master.menubar.add_command(
+            label="Leállítás",
+          #   command=self.__display_instrument_window
+        )
 
         self.master.menubar.add_command(
             label="Kilépés",
