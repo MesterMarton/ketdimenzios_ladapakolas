@@ -6,10 +6,7 @@ from threading import Thread
 
 from Classes.HeuristicSolver import HeuristicSolver
 
-# from Classes.Measurement import Measurement
-
 class SettingsFrame(ttk.Frame):
- #   def __init__(self, container, on_data_return):
     def __init__(self, container, on_data_return=None):
         super().__init__(
             container,
@@ -25,14 +22,11 @@ class SettingsFrame(ttk.Frame):
         self.on_data_return = on_data_return
         self.title_label.pack(side=tk.TOP, anchor="w", pady=(0, 10))
 
-        # --- Választó változó ---
         self.algorithm_var = tk.StringVar(value="heuristic")
 
-        # --- Frame a rádiógomboknak ---
         radio_frame = ttk.Frame(self)
         radio_frame.pack(side=tk.TOP, anchor="w", pady=5)
 
-        # --- Rádiógombok mellé ---
         self.heuristic_radio = ttk.Radiobutton(
             radio_frame,
             text="Heurisztikus algoritmus",
@@ -58,14 +52,11 @@ class SettingsFrame(ttk.Frame):
         self.combobox = ttk.Combobox(self, textvariable=self.combobox_var, state="readonly")
         self.combobox.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
 
-        # --- Gomb ---
         self.apply_button = ttk.Button(self, text="Alkalmaz", command=self.on_apply)
         self.apply_button.pack(side=tk.TOP, pady=(15, 0))
 
-        # --- Első feltöltés ---
         self.update_combobox()
 
-        # Automatikus pack
         self.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
     def update_combobox(self):
@@ -78,17 +69,9 @@ class SettingsFrame(ttk.Frame):
         if items:
             self.combobox.current(0)
 
-    # --- Gomb esemény ---
     def on_apply(self):
         print("Kiválasztott algoritmus:", self.algorithm_var.get())
         print("Kiválasztott opció a listából:", self.combobox_var.get())
 
         if self.on_data_return:
             self.on_data_return(self.algorithm_var.get(), self.combobox_var.get())
-
-        # if self.algorithm_var.get() == "heuristic":
-        #     a = HeuristicSolver(self.combobox_var.get())
-
-        # --- Automatikus pack a frame-be ---
-       #  self.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-      #  self.on_data_return = on_data_return

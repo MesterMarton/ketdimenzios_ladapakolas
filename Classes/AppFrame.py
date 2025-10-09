@@ -107,7 +107,7 @@ class AppFrame(ttk.Frame):
 
     def receive_settings_data(self, algorithm, option):
         self.choosed_algorithm_label.config(
-            text=f"Kiválasztott algoritmus: {algorithm}, Opció: {option}"
+            text=f"Kiválasztott algoritmus: {algorithm}: {option}"
         )
         self.algorithm = algorithm
         self.option = option
