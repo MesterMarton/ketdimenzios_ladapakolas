@@ -23,6 +23,7 @@ class AppFrame(ttk.Frame):
         self.squares = None
         self.algorithm = None
         self.option = None
+        self.needed_bins = None
 
         self.prev_mes_menu = tk.Menu(
             self.master.menubar,
@@ -89,7 +90,7 @@ class AppFrame(ttk.Frame):
             self.master,
             anchor="center",
             justify="center", 
-            text="Ládák száma: 0 "
+            text="Ládák száma: 0 \n Szükséges ládák száma: -"
         )
         self.extra_information_label.pack(side=tk.TOP, padx=10, pady=5)
 
@@ -119,14 +120,14 @@ class AppFrame(ttk.Frame):
         if self.squares == None or len(self.squares) == 0:
             messagebox.showwarning("Figyelmeztetés", "Nincsenek importált négyzetek!")
             return
-        messagebox.showinfo("Indítás", "Az algoritmus elindult!")
+        # messagebox.showinfo("Indítás", "Az algoritmus elindult!")
         if self.algorithm == "heuristic":
             a = HeuristicSolver( self.squares, self.option)
             # a = HeuristicSolver([Square(5), Square(3), Square(7), Square(2), Square(6)], self.option)
             a.run()
             # self.__display_bins(a.bins)
             # print(f"Number of bins used: {len(a.bins)}")
-            self.extra_information_label.config(text=f"Ládák száma: {len(a.bins)}")
+            self.extra_information_label.config(text=f"Ládák száma: {len(a.bins)} \n Szükséges ládák száma: {self.needed_bins}")
             self.__display_bins(a.bins)
 
         # else if self.algorithm == "genetic":
@@ -239,3 +240,20 @@ class AppFrame(ttk.Frame):
         for square in self.squares:
             sizes += f"{square.size} "
         self.imported_squares_label.config(text=f"Importált négyzetek: {sizes}")
+
+        self.needed_bins = self.calculate_needed_bins()
+
+        self.extra_information_label.config(
+            text=f"Ládák száma: 0 \n Szükséges ládák száma: {self.needed_bins}")
+
+    def calculate_needed_bins(self):
+        if self.squares is None or len(self.squares) == 0:
+            return
+        total_area = sum([square.size * square.size for square in self.squares])
+        needed_bins = total_area // (20 * 20)
+        if total_area % (20 * 20) != 0:
+            needed_bins += 1
+        return needed_bins
+
+        
+    
