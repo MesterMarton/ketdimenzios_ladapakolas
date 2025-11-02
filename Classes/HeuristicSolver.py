@@ -16,7 +16,7 @@ class HeuristicSolver:
     def run(self):
         self.sort_squares_by_size()
      #   print("Selected algorithm:", self.option)
-        if self.option == "First Fit Decreasing":
+        if self.option == "FFD - Top Left":
             self.first_fit()
 
     def first_fit(self):
