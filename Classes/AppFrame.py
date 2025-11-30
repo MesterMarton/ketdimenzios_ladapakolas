@@ -169,7 +169,7 @@ class AppFrame(ttk.Frame):
 
     def _update_stats_ui(self, solver_instance, strategy_name, is_repair=False):
         # Külön függvény a statisztika frissítésére, hogy ne duplikáljuk a kódot
-        info_text = f"Felhasznált ládák: {len(solver_instance.bins)}\nElméleti minimum: {self.needed_bins}"
+        info_text = f"Felhasznált ládák: {len(solver_instance.bins)}\n Szükséges ládák (min): {self.needed_bins}"
 
         if hasattr(solver_instance, 'split_log') and solver_instance.split_log:
             g1_str = ", ".join(map(str, solver_instance.split_log["Group 1"]))
