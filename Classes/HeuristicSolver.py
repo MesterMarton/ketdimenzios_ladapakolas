@@ -15,21 +15,35 @@ class HeuristicSolver:
         
     def run(self):
         self.sort_squares_by_size()
-     #   print("Selected algorithm:", self.option)
+        
+        # Itt választjuk szét a két logikát
         if self.option == "FFD - Top Left":
-            self.first_fit()
+            self.first_fit(bottom_up=False)
+        elif self.option == "FFD - Bottom Left":
+            self.first_fit(bottom_up=True)
 
-    def first_fit(self):
+    def first_fit(self, bottom_up=False):
         for square in self.squares:
             placed = False
             for bin in self.bins:
-                if bin.find_empty_place(square):
+                # Ha bottom_up igaz, akkor az új keresőt használjuk
+                if bottom_up:
+                    success = bin.find_empty_place_bottom_left(square)
+                else:
+                    success = bin.find_empty_place(square)
+                
+                if success:
                     placed = True
                     break
+            
             if not placed:
                 new_bin = Bin(len(self.bins) + 1)
                 self.bins.append(new_bin)
-                new_bin.find_empty_place(square)
+                # Az új ládában is a megfelelő irány szerint keresünk
+                if bottom_up:
+                    new_bin.find_empty_place_bottom_left(square)
+                else:
+                    new_bin.find_empty_place(square)
 
 # h = HeuristicSolver([Square(5), Square(3), Square(7), Square(2), Square(6)], "first_fit")
 # h.run()

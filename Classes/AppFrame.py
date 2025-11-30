@@ -133,10 +133,38 @@ class AppFrame(ttk.Frame):
         # else if self.algorithm == "genetic":
 
     def __display_bins(self, bins=None):
-        if bins is None:
-            bin_size = 20
+        # Alapértékek
+        bin_w = 20
+        bin_h = 20
+        gap = 5  # Távolság a ládák között
+
+        # Ládák számának és elrendezésének meghatározása
+        if bins is None or len(bins) == 0:
+            num_bins = 0
+            cols = 1
         else:
-            bin_size = 20 * len(bins)
+            num_bins = len(bins)
+            # A kért logika:
+            # 1 láda -> 1 oszlop
+            # 2-4 láda -> 2 oszlop (így a 3. átkerül a 2. sorba, a 4. mellé)
+            # 5+ láda -> 3 oszlop (így 9 láda 3x3-as lesz)
+            if num_bins == 1:
+                cols = 1
+            elif num_bins <= 4:
+                cols = 2
+            else:
+                cols = 3
+        
+        # Sorok számának kiszámítása
+        import math
+        rows = math.ceil(num_bins / cols) if num_bins > 0 else 1
+
+        # A teljes ábra méretének kiszámítása a határok beállításához
+        total_width = cols * bin_w + (cols - 1) * gap
+        total_height = rows * bin_h + (rows - 1) * gap
+        
+        # Margó, hogy ne érjen a széléhez
+        margin = 5 
 
         # Ha még nincs canvas / figure, hozzuk létre egyszer
         if not hasattr(self, "canvas"):
@@ -145,56 +173,82 @@ class AppFrame(ttk.Frame):
 
             self.fig = Figure(figsize=(6, 6))
             self.ax1 = self.fig.add_subplot(111)
-            self.ax1.set_xlim(0, bin_size)
-            self.ax1.set_ylim(0, bin_size)
-            self.ax1.set_aspect("equal")
-            self.ax1.set_title("Ládapakolás ábrázolása:")
-          #   self.ax1.grid(True)
-
+            
             self.canvas = FigureCanvasTkAgg(self.fig, master=self.plot_frame)
             self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         # Töröljük a korábbi rajzokat
         self.ax1.cla()
-        self.ax1.set_xlim(0, bin_size)
-        self.ax1.set_ylim(0, bin_size)
+        
+        # Beállítjuk a határokat a rácsos elrendezéshez
+        # A + margin és - margin biztosítja, hogy legyen kis keret
+        self.ax1.set_xlim(-margin, total_width + margin)
+        self.ax1.set_ylim(-margin, total_height + margin)
+        
         self.ax1.set_aspect("equal")
         self.ax1.set_title("Ládapakolás ábrázolása:")
-        # self.ax1.grid(True)
-
-        # self.ax1.invert_xaxis()
-        # self.ax1.invert_yaxis()
+        
+        # Y tengely fordítása, hogy a (0,0) bal felül legyen
         self.ax1.invert_yaxis()
 
+        # Tengelyek és rács eltüntetése a tisztább képért (opcionális)
+        self.ax1.axis('off') 
 
-        base_colors = ['blue', 'green', 'orange', 'gray', 'brown', 'yellow',"red"]
+        base_colors = ['blue', 'green', 'orange', 'gray', 'brown', 'yellow', "red", "cyan", "magenta"]
         color_iterator = iter(base_colors)
 
         if bins:
+            for i, bin_obj in enumerate(bins):
+                # Rács pozíció kiszámítása (sor, oszlop)
+                row = i // cols
+                col = i % cols
 
-            for i in range(len(bins)):
+                # A láda bal felső sarkának koordinátája a rácsban
+                # X: oszlop * (szélesség + hézag)
+                # Y: sor * (magasság + hézag)
+                bin_offset_x = col * (bin_w + gap)
+                bin_offset_y = row * (bin_h + gap)
+
+                # Láda keretének kirajzolása
                 bin_rect = plt.Rectangle(
-                    (i * 20, 0),  
-                    20, 20,       
+                    (bin_offset_x, bin_offset_y),  
+                    bin_w, bin_h,       
                     facecolor="none",  
                     edgecolor="black",
                     linewidth=2
                 )
                 self.ax1.add_patch(bin_rect)
-            for bin in bins:
-                for square in bin.squares:
+                
+                # Láda sorszámának kiírása (opcionális, de hasznos)
+                self.ax1.text(bin_offset_x, bin_offset_y - 1, f"Bin {bin_obj.id}", fontsize=8)
+
+                # Négyzetek kirajzolása a ládán belül
+                for square in bin_obj.squares:
                     try:
                         color = next(color_iterator)
                     except StopIteration:
                         color_iterator = iter(base_colors)
                         color = next(color_iterator)
+                    
+                    # KOORDINÁTA KORREKCIÓ:
+                    # A Square osztályban a square.x így van tárolva: local_x + (bin_id-1)*20
+                    # Ezt vissza kell bontanunk, hogy megkapjuk a ládán belüli relatív X-et.
+                    # Mivel a Bin osztályban az id 1-től indul (len+1), ezért:
+                    linear_strip_correction = (bin_obj.id - 1) * 20
+                    local_x = square.x - linear_strip_correction
+                    
+                    # A végső pozíció a rácsban: láda_eltolás + relatív_x
+                    final_x = bin_offset_x + local_x
+                    final_y = bin_offset_y + square.y
+
                     rect = plt.Rectangle(
-                        (square.x, square.y),
+                        (final_x, final_y),
                         square.size, square.size,
                         facecolor=color,
                         edgecolor="black"
                     )
                     self.ax1.add_patch(rect)
+
         self.canvas.draw()
 
 

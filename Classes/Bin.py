@@ -19,6 +19,19 @@ class Bin:
                     return True
         return False
     
+    # szabad hely keresése lentről felfelé (Bottom-Left)
+    def find_empty_place_bottom_left(self, square):
+        size = square.size
+        start_row = self.space_matrix.shape[0] - size
+        for i in range(start_row, -1, -1):
+            for j in range(self.space_matrix.shape[1] - size + 1):
+                if np.all(self.space_matrix[i:i+size, j:j+size]):
+                    self.space_matrix[i:i+size, j:j+size] = False
+                    square.set_position(j, i, self.id)
+                    self.squares.append(square)
+                    return True
+        return False
+    
 
     # legnagybb szabadhely a mátrixban
     def largest_square(self):
