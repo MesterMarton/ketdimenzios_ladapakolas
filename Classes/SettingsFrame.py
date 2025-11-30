@@ -62,12 +62,8 @@ class SettingsFrame(ttk.Frame):
     def update_combobox(self):
         algorithm = self.algorithm_var.get()
         if algorithm == "heuristic":
-            items = [
-                "FFD - Top Left", 
-                "FFD - Bottom Left", 
-                "Split - Top Left",      # Új opció
-                "Split - Bottom Left"    # Új opció
-            ]
+            # Kivettük a "Split" opciókat, csak az irányok maradtak
+            items = ["FFD - Top Left", "FFD - Bottom Left", "Algoritmus C"]
         else:
             items = ["Genetikus X", "Genetikus Y", "Genetikus Z"]
         

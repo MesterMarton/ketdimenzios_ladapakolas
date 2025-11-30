@@ -69,7 +69,7 @@ class HeuristicSolver:
     # ... (a fájl eleje és többi része változatlan) ...
 
     def split_and_fit(self, bottom_up=False):
-        # 1. Véletlenszerű csoportbontás
+        # 1. Random bontás
         group1 = []
         group2 = []
         for s in self.squares:
@@ -78,24 +78,18 @@ class HeuristicSolver:
             else:
                 group2.append(s)
         
-        # !!! ITT MENTJÜK EL AZ EREDMÉNYT A MEGJELENÍTÉSHEZ !!!
-        # Csak a méreteket tároljuk el listában, hogy kiírható legyen
         self.split_log = {
             "Group 1": [s.size for s in group1],
             "Group 2": [s.size for s in group2]
         }
         
-        # 2. Mindkét csoport csökkenő sorrendbe rendezése
+        # 2. Rendezés
         group1.sort(key=lambda s: s.size, reverse=True)
         group2.sort(key=lambda s: s.size, reverse=True)
 
-        # 3. Ládák ürítése
+        # 3. Újrapakolás
         self.bins = []
-
-        # 4. Első csoport elhelyezése
         for s in group1:
             self.place_square(s, bottom_up)
-            
-        # 5. Második csoport elhelyezése
         for s in group2:
             self.place_square(s, bottom_up)

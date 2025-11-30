@@ -75,6 +75,11 @@ class AppFrame(ttk.Frame):
         )
 
         self.master.menubar.add_command(
+            label="Javítás",
+            command=self.__run_repair
+        )
+
+        self.master.menubar.add_command(
             label="Leállítás",
           #   command=self.__display_instrument_window
         )
@@ -263,7 +268,40 @@ class AppFrame(ttk.Frame):
                     self.ax1.add_patch(rect)
 
         self.canvas.draw()
+        
+    def __run_repair(self):
+        # 1. Ellenőrzés: Van-e mit javítani?
+        if self.algorithm is None:
+            messagebox.showwarning("Figyelmeztetés", "Előbb válassz algoritmust és futtasd le!")
+            return
+        if self.squares is None or len(self.squares) == 0:
+            messagebox.showwarning("Figyelmeztetés", "Nincsenek négyzetek betöltve!")
+            return
 
+        # 2. Irány meghatározása a legutolsó beállítás (self.option) alapján
+        # Ha a "Bottom Left" szöveg benne van az opcióban, akkor lentről felfelé pakolunk
+        is_bottom_up = "Bottom Left" in str(self.option)
+
+        # 3. Heurisztikus megoldó létrehozása
+        if self.algorithm == "heuristic":
+            # Létrehozzuk a solvert a jelenlegi négyzetekkel
+            a = HeuristicSolver(self.squares, self.option)
+            
+            # Meghívjuk a KÜLÖNLEGES split_and_fit metódust
+            # Átadjuk neki az irányt, amit fentebb kitaláltunk
+            a.split_and_fit(bottom_up=is_bottom_up)
+            
+            # 4. Eredmények megjelenítése (szöveg + grafikon)
+            info_text = f"Ládák száma: {len(a.bins)} \n Szükséges ládák száma: {self.needed_bins}"
+
+            # Ha van split log (csoportbontás eredménye), megjelenítjük
+            if hasattr(a, 'split_log') and a.split_log:
+                g1_str = ", ".join(map(str, a.split_log["Group 1"]))
+                g2_str = ", ".join(map(str, a.split_log["Group 2"]))
+                info_text += f"\n\n--- JAVÍTÁS (Split) eredménye ---\nIrány: {'Lentről fel' if is_bottom_up else 'Fentről le'}\n1. csoport: {g1_str}\n2. csoport: {g2_str}"
+
+            self.extra_information_label.config(text=info_text)
+            self.__display_bins(a.bins)
 
     def __import_from_txt(self):
         file_path = filedialog.askopenfilename(
