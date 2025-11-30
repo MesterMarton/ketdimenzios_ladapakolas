@@ -75,11 +75,17 @@ class AppFrame(ttk.Frame):
         self.choosed_algorithm_label.pack(anchor="w")
 
         # Eredmény kártya
+       # Eredmény kártya (Statisztika)
         self.stats_frame = ttk.LabelFrame(self.sidebar, text="Statisztika", style="Card.TLabelframe", padding=10)
         self.stats_frame.pack(fill=tk.X, pady=5)
 
-        self.extra_information_label = ttk.Label(self.stats_frame, text="Futtatásra vár...", wraplength=200, justify="left")
-        self.extra_information_label.pack(anchor="w")
+        # 1. TÖRÖLTÜK a 'wraplength=200'-at innen is
+        # 2. Hozzáadtuk a 'fill=tk.X'-et a pack-hez, hogy kitöltse a teret
+        self.extra_information_label = ttk.Label(self.stats_frame, text="Futtatásra vár...", justify="left")
+        self.extra_information_label.pack(anchor="w", fill=tk.X)
+
+        # 3. ÚJ SOR: Dinamikus tördelés figyelése (ugyanaz, mint a fentinél)
+        self.stats_frame.bind("<Configure>", lambda e: self.extra_information_label.config(wraplength=self.stats_frame.winfo_width()-20))
 
         # --- TARTALOM TERÜLET (Grafikon) ---
         # Kezdetben kirajzoljuk az üres táblát
@@ -214,7 +220,7 @@ class AppFrame(ttk.Frame):
         
         # Nézet beállítása
         if bins is None:
-            self.ax1.text(total_width/2, total_height/2, "Várakozás adatokra...", 
+            self.ax1.text(total_width/2, total_height/2, "Várakozás az adatokra...", 
                           horizontalalignment='center', verticalalignment='center', color='gray')
             self.ax1.set_xlim(0, 40)
             self.ax1.set_ylim(0, 40)
