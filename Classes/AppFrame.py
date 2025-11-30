@@ -268,9 +268,9 @@ class AppFrame(ttk.Frame):
                     self.ax1.add_patch(rect)
 
         self.canvas.draw()
-        
+
     def __run_repair(self):
-        # 1. Ellenőrzés: Van-e mit javítani?
+        # 1. Ellenőrzés
         if self.algorithm is None:
             messagebox.showwarning("Figyelmeztetés", "Előbb válassz algoritmust és futtasd le!")
             return
@@ -278,27 +278,31 @@ class AppFrame(ttk.Frame):
             messagebox.showwarning("Figyelmeztetés", "Nincsenek négyzetek betöltve!")
             return
 
-        # 2. Irány meghatározása a legutolsó beállítás (self.option) alapján
-        # Ha a "Bottom Left" szöveg benne van az opcióban, akkor lentről felfelé pakolunk
-        is_bottom_up = "Bottom Left" in str(self.option)
+        # 2. Stratégia meghatározása a legutolsó beállítás (self.option) alapján
+        strategy = "TopLeft"
+        strategy_name_hu = "Bal-Felső"
+        
+        if "Bottom Left" in str(self.option):
+            strategy = "BottomLeft"
+            strategy_name_hu = "Bal-Alsó"
+        elif "Corners" in str(self.option):
+            strategy = "Corners"
+            strategy_name_hu = "4 Sarok"
 
-        # 3. Heurisztikus megoldó létrehozása
+        # 3. Heurisztikus megoldó futtatása Split módban
         if self.algorithm == "heuristic":
-            # Létrehozzuk a solvert a jelenlegi négyzetekkel
             a = HeuristicSolver(self.squares, self.option)
             
-            # Meghívjuk a KÜLÖNLEGES split_and_fit metódust
-            # Átadjuk neki az irányt, amit fentebb kitaláltunk
-            a.split_and_fit(bottom_up=is_bottom_up)
+            # Átadjuk a stratégiát
+            a.split_and_fit(strategy=strategy)
             
-            # 4. Eredmények megjelenítése (szöveg + grafikon)
+            # 4. Megjelenítés
             info_text = f"Ládák száma: {len(a.bins)} \n Szükséges ládák száma: {self.needed_bins}"
 
-            # Ha van split log (csoportbontás eredménye), megjelenítjük
             if hasattr(a, 'split_log') and a.split_log:
                 g1_str = ", ".join(map(str, a.split_log["Group 1"]))
                 g2_str = ", ".join(map(str, a.split_log["Group 2"]))
-                info_text += f"\n\n--- JAVÍTÁS (Split) eredménye ---\nIrány: {'Lentről fel' if is_bottom_up else 'Fentről le'}\n1. csoport: {g1_str}\n2. csoport: {g2_str}"
+                info_text += f"\n\n--- JAVÍTÁS (Split) eredménye ---\nIrány/Mód: {strategy_name_hu}\n1. csoport: {g1_str}\n2. csoport: {g2_str}"
 
             self.extra_information_label.config(text=info_text)
             self.__display_bins(a.bins)

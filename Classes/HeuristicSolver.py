@@ -14,38 +14,41 @@ class HeuristicSolver:
         else:
             raise ValueError("Squares list is not initialized.")
         
+    # ... (HeuristicSolver osztály eleje) ...
+
     def run(self):
-        # A kiválasztott opció alapján döntünk a futtatásról
+        self.sort_squares_by_size()
         
-        # Hagyományos FFD algoritmusok
+        # Stratégia meghatározása az opció szövegéből
+        strategy = "TopLeft" # Alapértelmezett
+        if "Bottom Left" in self.option:
+            strategy = "BottomLeft"
+        elif "Corners" in self.option:
+            strategy = "Corners"
+            
+        # Algoritmus futtatása
         if "FFD" in self.option:
-            self.sort_squares_by_size()
-            if "Top Left" in self.option:
-                self.first_fit(bottom_up=False)
-            elif "Bottom Left" in self.option:
-                self.first_fit(bottom_up=True)
-                
-        # Az új "Lokális javító" (Split) algoritmusok
-        elif "Split" in self.option:
-            # Itt a rendezés a csoportbontás után történik
-            if "Top Left" in self.option:
-                self.split_and_fit(bottom_up=False)
-            elif "Bottom Left" in self.option:
-                self.split_and_fit(bottom_up=True)
+            self.first_fit(strategy=strategy)
+        elif "Split" in self.option: # Ha a split benne maradt a kódban
+            self.split_and_fit(strategy=strategy)
 
     # Segédfüggvény egy darab négyzet elhelyezésére
-    def place_square(self, square, bottom_up=False):
+    def place_square(self, square, strategy="TopLeft"):
         placed = False
         for bin in self.bins:
-            # Irány kiválasztása
-            if bottom_up:
-                # Feltételezve, hogy megírtad az előző lépésben a find_empty_place_bottom_left-et
+            success = False
+            # Stratégia kiválasztása
+            if strategy == "BottomLeft":
                 if hasattr(bin, 'find_empty_place_bottom_left'):
                     success = bin.find_empty_place_bottom_left(square)
                 else:
-                    # Ha nincs megírva, fallback a simára (vagy hiba)
                     success = bin.find_empty_place(square)
-            else:
+            elif strategy == "Corners":
+                if hasattr(bin, 'find_empty_place_corners'):
+                    success = bin.find_empty_place_corners(square)
+                else:
+                    success = bin.find_empty_place(square)
+            else: # TopLeft
                 success = bin.find_empty_place(square)
 
             if success:
@@ -56,19 +59,21 @@ class HeuristicSolver:
         if not placed:
             new_bin = Bin(len(self.bins) + 1)
             self.bins.append(new_bin)
-            if bottom_up and hasattr(new_bin, 'find_empty_place_bottom_left'):
+            
+            # Az új ládában is a stratégiának megfelelően keresünk
+            if strategy == "BottomLeft":
                 new_bin.find_empty_place_bottom_left(square)
+            elif strategy == "Corners":
+                new_bin.find_empty_place_corners(square)
             else:
                 new_bin.find_empty_place(square)
 
-    def first_fit(self, bottom_up=False):
-        self.bins = [] # Biztos ami biztos, nullázzuk a ládákat
+    def first_fit(self, strategy="TopLeft"):
+        self.bins = []
         for square in self.squares:
-            self.place_square(square, bottom_up)
+            self.place_square(square, strategy=strategy)
 
-    # ... (a fájl eleje és többi része változatlan) ...
-
-    def split_and_fit(self, bottom_up=False):
+    def split_and_fit(self, strategy="TopLeft"):
         # 1. Random bontás
         group1 = []
         group2 = []
@@ -90,6 +95,6 @@ class HeuristicSolver:
         # 3. Újrapakolás
         self.bins = []
         for s in group1:
-            self.place_square(s, bottom_up)
+            self.place_square(s, strategy=strategy)
         for s in group2:
-            self.place_square(s, bottom_up)
+            self.place_square(s, strategy=strategy)
