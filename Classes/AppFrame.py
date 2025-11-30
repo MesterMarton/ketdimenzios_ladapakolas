@@ -1,13 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
-from tkinter import PhotoImage
 from tkinter import filedialog
 from tkinter import messagebox
 
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from pyparsing import Path
+from pathlib import Path
 
 from Classes.HeuristicSolver import HeuristicSolver
 from Classes.Square import Square
@@ -16,88 +15,86 @@ from Classes.BenchmarkWindow import BenchmarkWindow
 
 class AppFrame(ttk.Frame):
     def __init__(self, container):
-        super().__init__(
-            container,
-            padding = (0, 0, 0, 0)
-        )
+        super().__init__(container)
+        self.pack(fill=tk.BOTH, expand=True) # A Frame töltse ki az ablakot
+
+        # --- ADATOK ---
         self.squares = None
         self.algorithm = None
         self.option = None
         self.needed_bins = None
 
-        self.prev_mes_menu = tk.Menu(
-            self.master.menubar,
-            tearoff=0
-        )
+        # --- STÍLUSOK DEFINIÁLÁSA ---
+        self.style = ttk.Style()
+        self.style.configure("TLabel", font=("Segoe UI", 10))
+        self.style.configure("Header.TLabel", font=("Segoe UI", 12, "bold"))
+        self.style.configure("Card.TLabelframe", background="#f0f0f0")
+        self.style.configure("Card.TLabelframe.Label", font=("Segoe UI", 10, "bold"), foreground="#333")
 
-        self.master.menubar.add_cascade(
-            label="Fájl",
-            menu=self.prev_mes_menu
-        )
+        # --- MENÜ LÉTREHOZÁSA ---
+        self._create_menu()
 
-        self.prev_mes_menu.add_command(
-            label="Új",
-           # image=self.db_icon,
-            compound="left",
-            command = self.__create_new_benchmark,
-            font=("", 9)
-        )
+        # --- FŐ ELRENDEZÉS (Layout) ---
+        # Két részre osztjuk: Bal oldal (Sidebar) és Jobb oldal (Content)
+        
+        self.main_paned = ttk.PanedWindow(self, orient=tk.HORIZONTAL)
+        self.main_paned.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        self.prev_mes_menu.add_command(
-            label="Megnyitás",
-            # image=self.file_icon,
-            compound="left",
-            command = self.__import_from_txt,
-            font=("", 9)
-        )
+        # 1. BAL OLDAL (Sidebar)
+        self.sidebar = ttk.Frame(self.main_paned, width=250, padding=(0, 0, 10, 0))
+        self.main_paned.add(self.sidebar, weight=1)
 
-        self.imported_squares_label = ttk.Label(
-            self.master,
-            text="Importált négyzetek: -"
-        )
-        self.imported_squares_label.pack(side=tk.TOP, anchor="w", padx=10, pady=5)
+        # 2. JOBB OLDAL (Main Content - Grafikon)
+        self.content_area = ttk.Frame(self.main_paned, padding=(10, 0, 0, 0))
+        self.main_paned.add(self.content_area, weight=4)
 
-        self.choosed_algorithm_label = ttk.Label(
-            self.master,
-            text="Kiválasztott algoritmus: -"
-        )
-        self.choosed_algorithm_label.pack(side=tk.TOP, anchor="w", padx=10, pady=5)
-       
+        # --- SIDEBAR TARTALMA ---
+        
+        # Cím
+        self.title_label = ttk.Label(self.sidebar, text="Ládapakolás", style="Header.TLabel")
+        self.title_label.pack(side=tk.TOP, anchor="w", pady=(0, 20))
 
-        self.master.menubar.add_command(
-            label="Beállítások",
-            command=self.__display_settings_window
-        )
+        # Adatok kártya
+        # ... (előző kódok: info_frame létrehozása) ...
 
-        self.master.menubar.add_command(
-            label="Indítás",
-            command=self.__run_algorithm
-        )
+        # Adatok kártya
+        self.info_frame = ttk.LabelFrame(self.sidebar, text="Bemeneti adatok", style="Card.TLabelframe", padding=10)
+        self.info_frame.pack(fill=tk.X, pady=5)
+        
+        # TÖRÖLTÜK a fix 'wraplength=200'-at
+        self.imported_squares_label = ttk.Label(self.info_frame, text="Nincs adat betöltve", justify="left")
+        self.imported_squares_label.pack(anchor="w", fill=tk.X)
 
-        self.master.menubar.add_command(
-            label="Javítás",
-            command=self.__run_repair
-        )
+        # EZ AZ ÚJ SOR: Ha változik a keret mérete, frissítse a sortörést
+        self.info_frame.bind("<Configure>", lambda e: self.imported_squares_label.config(wraplength=self.info_frame.winfo_width()-20))
+        # Algoritmus kártya
+        self.algo_frame = ttk.LabelFrame(self.sidebar, text="Algoritmus", style="Card.TLabelframe", padding=10)
+        self.algo_frame.pack(fill=tk.X, pady=5)
 
-        self.master.menubar.add_command(
-            label="Leállítás",
-          #   command=self.__display_instrument_window
-        )
+        self.choosed_algorithm_label = ttk.Label(self.algo_frame, text="Nincs kiválasztva", wraplength=200)
+        self.choosed_algorithm_label.pack(anchor="w")
 
-        self.master.menubar.add_command(
-            label="Kilépés",
-            command=self.master.destroy
-        )
+        # Eredmény kártya
+        self.stats_frame = ttk.LabelFrame(self.sidebar, text="Statisztika", style="Card.TLabelframe", padding=10)
+        self.stats_frame.pack(fill=tk.X, pady=5)
 
+        self.extra_information_label = ttk.Label(self.stats_frame, text="Futtatásra vár...", wraplength=200, justify="left")
+        self.extra_information_label.pack(anchor="w")
+
+        # --- TARTALOM TERÜLET (Grafikon) ---
+        # Kezdetben kirajzoljuk az üres táblát
         self.__display_bins()
 
-        self.extra_information_label = ttk.Label(
-            self.master,
-            anchor="center",
-            justify="center", 
-            text="Ládák száma: 0 \n Szükséges ládák száma: -"
-        )
-        self.extra_information_label.pack(side=tk.TOP, padx=10, pady=5)
+    def _create_menu(self):
+        self.prev_mes_menu = tk.Menu(self.master.menubar, tearoff=0)
+        self.master.menubar.add_cascade(label="Fájl", menu=self.prev_mes_menu)
+        self.prev_mes_menu.add_command(label="Új Benchmark", command=self.__create_new_benchmark)
+        self.prev_mes_menu.add_command(label="Megnyitás (.txt)", command=self.__import_from_txt)
+
+        self.master.menubar.add_command(label="Beállítások", command=self.__display_settings_window)
+        self.master.menubar.add_command(label="Indítás", command=self.__run_algorithm)
+        self.master.menubar.add_command(label="Javítás", command=self.__run_repair) # Javítás gomb
+        self.master.menubar.add_command(label="Kilépés", command=self.master.destroy)
 
     def __display_settings_window(self):
         settings_window = SettingsWindow(self, on_data_return=self.receive_settings_data)
@@ -112,165 +109,34 @@ class AppFrame(ttk.Frame):
         self.wait_window(benchmark_window)
 
     def receive_settings_data(self, algorithm, option):
-        self.choosed_algorithm_label.config(
-            text=f"Kiválasztott algoritmus: {algorithm}: {option}"
-        )
+        # Csak a nevét írjuk ki szépen
+        self.choosed_algorithm_label.config(text=f"{algorithm}\n({option})")
         self.algorithm = algorithm
         self.option = option
 
     def __run_algorithm(self):
-        if self.algorithm == None:
+        if self.algorithm is None:
             messagebox.showwarning("Figyelmeztetés", "Nincs kiválasztva algoritmus!")
             return
-        if self.squares == None or len(self.squares) == 0:
+        if self.squares is None or len(self.squares) == 0:
             messagebox.showwarning("Figyelmeztetés", "Nincsenek importált négyzetek!")
             return
 
         if self.algorithm == "heuristic":
+            # Stratégia meghatározása az opció szövegéből
+            strategy = "TopLeft"
+            if "Bottom Left" in str(self.option):
+                strategy = "BottomLeft"
+            elif "Corners" in str(self.option):
+                strategy = "Corners"
+
             a = HeuristicSolver(self.squares, self.option)
             a.run()
             
-            # Alapszöveg
-            info_text = f"Ládák száma: {len(a.bins)} \n Szükséges ládák száma: {self.needed_bins}"
-
-            # !!! ÚJ RÉSZ: SPLIT ADATOK MEGJELENÍTÉSE !!!
-            # Megnézzük, hogy létezik-e a split_log és van-e benne adat
-            if hasattr(a, 'split_log') and a.split_log:
-                # Listák szöveggé alakítása (pl: "10, 8, 5")
-                g1_str = ", ".join(map(str, a.split_log["Group 1"]))
-                g2_str = ", ".join(map(str, a.split_log["Group 2"]))
-                
-                # Hozzáfűzés az info szöveghez
-                info_text += f"\n\n--- Szétvágás eredménye ---\n1. csoport: {g1_str}\n2. csoport: {g2_str}"
-
-            # Frissítjük a címkét az új szöveggel
-            self.extra_information_label.config(text=info_text)
-            
+            self._update_stats_ui(a, strategy)
             self.__display_bins(a.bins)
 
-        # else if self.algorithm == "genetic":
-
-    def __display_bins(self, bins=None):
-        # Alapértékek
-        bin_w = 20
-        bin_h = 20
-        gap = 5  # Távolság a ládák között
-
-        # Ládák számának és elrendezésének meghatározása
-        if bins is None or len(bins) == 0:
-            num_bins = 0
-            cols = 1
-        else:
-            num_bins = len(bins)
-            # A kért logika:
-            # 1 láda -> 1 oszlop
-            # 2-4 láda -> 2 oszlop (így a 3. átkerül a 2. sorba, a 4. mellé)
-            # 5+ láda -> 3 oszlop (így 9 láda 3x3-as lesz)
-            if num_bins == 1:
-                cols = 1
-            elif num_bins <= 4:
-                cols = 2
-            else:
-                cols = 3
-        
-        # Sorok számának kiszámítása
-        import math
-        rows = math.ceil(num_bins / cols) if num_bins > 0 else 1
-
-        # A teljes ábra méretének kiszámítása a határok beállításához
-        total_width = cols * bin_w + (cols - 1) * gap
-        total_height = rows * bin_h + (rows - 1) * gap
-        
-        # Margó, hogy ne érjen a széléhez
-        margin = 5 
-
-        # Ha még nincs canvas / figure, hozzuk létre egyszer
-        if not hasattr(self, "canvas"):
-            self.plot_frame = tk.Frame(self.master)
-            self.plot_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-
-            self.fig = Figure(figsize=(6, 6))
-            self.ax1 = self.fig.add_subplot(111)
-            
-            self.canvas = FigureCanvasTkAgg(self.fig, master=self.plot_frame)
-            self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-
-        # Töröljük a korábbi rajzokat
-        self.ax1.cla()
-        
-        # Beállítjuk a határokat a rácsos elrendezéshez
-        # A + margin és - margin biztosítja, hogy legyen kis keret
-        self.ax1.set_xlim(-margin, total_width + margin)
-        self.ax1.set_ylim(-margin, total_height + margin)
-        
-        self.ax1.set_aspect("equal")
-        self.ax1.set_title("Ládapakolás ábrázolása:")
-        
-        # Y tengely fordítása, hogy a (0,0) bal felül legyen
-        self.ax1.invert_yaxis()
-
-        # Tengelyek és rács eltüntetése a tisztább képért (opcionális)
-        self.ax1.axis('off') 
-
-        base_colors = ['blue', 'green', 'orange', 'gray', 'brown', 'yellow', "red", "cyan", "magenta"]
-        color_iterator = iter(base_colors)
-
-        if bins:
-            for i, bin_obj in enumerate(bins):
-                # Rács pozíció kiszámítása (sor, oszlop)
-                row = i // cols
-                col = i % cols
-
-                # A láda bal felső sarkának koordinátája a rácsban
-                # X: oszlop * (szélesség + hézag)
-                # Y: sor * (magasság + hézag)
-                bin_offset_x = col * (bin_w + gap)
-                bin_offset_y = row * (bin_h + gap)
-
-                # Láda keretének kirajzolása
-                bin_rect = plt.Rectangle(
-                    (bin_offset_x, bin_offset_y),  
-                    bin_w, bin_h,       
-                    facecolor="none",  
-                    edgecolor="black",
-                    linewidth=2
-                )
-                self.ax1.add_patch(bin_rect)
-                
-                # Láda sorszámának kiírása (opcionális, de hasznos)
-                self.ax1.text(bin_offset_x, bin_offset_y - 1, f"Bin {bin_obj.id}", fontsize=8)
-
-                # Négyzetek kirajzolása a ládán belül
-                for square in bin_obj.squares:
-                    try:
-                        color = next(color_iterator)
-                    except StopIteration:
-                        color_iterator = iter(base_colors)
-                        color = next(color_iterator)
-                    
-                    # KOORDINÁTA KORREKCIÓ:
-                    # A Square osztályban a square.x így van tárolva: local_x + (bin_id-1)*20
-                    # Ezt vissza kell bontanunk, hogy megkapjuk a ládán belüli relatív X-et.
-                    # Mivel a Bin osztályban az id 1-től indul (len+1), ezért:
-                    linear_strip_correction = (bin_obj.id - 1) * 20
-                    local_x = square.x - linear_strip_correction
-                    
-                    # A végső pozíció a rácsban: láda_eltolás + relatív_x
-                    final_x = bin_offset_x + local_x
-                    final_y = bin_offset_y + square.y
-
-                    rect = plt.Rectangle(
-                        (final_x, final_y),
-                        square.size, square.size,
-                        facecolor=color,
-                        edgecolor="black"
-                    )
-                    self.ax1.add_patch(rect)
-
-        self.canvas.draw()
-
     def __run_repair(self):
-        # 1. Ellenőrzés
         if self.algorithm is None:
             messagebox.showwarning("Figyelmeztetés", "Előbb válassz algoritmust és futtasd le!")
             return
@@ -278,34 +144,125 @@ class AppFrame(ttk.Frame):
             messagebox.showwarning("Figyelmeztetés", "Nincsenek négyzetek betöltve!")
             return
 
-        # 2. Stratégia meghatározása a legutolsó beállítás (self.option) alapján
+        # Stratégia meghatározása a legutolsó beállítás alapján
         strategy = "TopLeft"
-        strategy_name_hu = "Bal-Felső"
-        
+        strategy_lbl = "Bal-Felső"
         if "Bottom Left" in str(self.option):
             strategy = "BottomLeft"
-            strategy_name_hu = "Bal-Alsó"
+            strategy_lbl = "Bal-Alsó"
         elif "Corners" in str(self.option):
             strategy = "Corners"
-            strategy_name_hu = "4 Sarok"
+            strategy_lbl = "4 Sarok"
 
-        # 3. Heurisztikus megoldó futtatása Split módban
         if self.algorithm == "heuristic":
             a = HeuristicSolver(self.squares, self.option)
-            
-            # Átadjuk a stratégiát
             a.split_and_fit(strategy=strategy)
             
-            # 4. Megjelenítés
-            info_text = f"Ládák száma: {len(a.bins)} \n Szükséges ládák száma: {self.needed_bins}"
-
-            if hasattr(a, 'split_log') and a.split_log:
-                g1_str = ", ".join(map(str, a.split_log["Group 1"]))
-                g2_str = ", ".join(map(str, a.split_log["Group 2"]))
-                info_text += f"\n\n--- JAVÍTÁS (Split) eredménye ---\nIrány/Mód: {strategy_name_hu}\n1. csoport: {g1_str}\n2. csoport: {g2_str}"
-
-            self.extra_information_label.config(text=info_text)
+            self._update_stats_ui(a, strategy_lbl, is_repair=True)
             self.__display_bins(a.bins)
+
+    def _update_stats_ui(self, solver_instance, strategy_name, is_repair=False):
+        # Külön függvény a statisztika frissítésére, hogy ne duplikáljuk a kódot
+        info_text = f"Felhasznált ládák: {len(solver_instance.bins)}\nElméleti minimum: {self.needed_bins}"
+
+        if hasattr(solver_instance, 'split_log') and solver_instance.split_log:
+            g1_str = ", ".join(map(str, solver_instance.split_log["Group 1"]))
+            g2_str = ", ".join(map(str, solver_instance.split_log["Group 2"]))
+            prefix = "JAVÍTÁS" if is_repair else "SPLIT"
+            info_text += f"\n\n--- {prefix} ADATOK ---\nMód: {strategy_name}\n\n1. Csoport ({len(solver_instance.split_log['Group 1'])} db):\n{g1_str}\n\n2. Csoport ({len(solver_instance.split_log['Group 2'])} db):\n{g2_str}"
+        
+        self.extra_information_label.config(text=info_text)
+
+
+    def __display_bins(self, bins=None):
+        # --- BEÁLLÍTÁSOK ---
+        bin_w = 20
+        bin_h = 20
+        gap = 2       # CSÖKKENTETT HÉZAG (5 helyett 2), hogy közelebb legyenek
+        margin = 2    # CSÖKKENTETT MARGÓ (5 helyett 2)
+
+        # Oszlopok és sorok számítása
+        if bins is None or len(bins) == 0:
+            num_bins = 0
+            cols = 1
+        else:
+            num_bins = len(bins)
+            if num_bins == 1:
+                cols = 1
+            elif num_bins <= 4:
+                cols = 2
+            else:
+                cols = 3
+        
+        import math
+        rows = math.ceil(num_bins / cols) if num_bins > 0 else 1
+        total_width = cols * bin_w + (cols - 1) * gap
+        total_height = rows * bin_h + (rows - 1) * gap
+
+        # Ha még nincs canvas, létrehozzuk
+        if not hasattr(self, "canvas"):
+            # !!! ITT A VÁLTOZÁS: figsize=(8, 8) az (5, 5) helyett !!!
+            # Ez jelentősen megnöveli az ábra méretét
+            self.fig = Figure(figsize=(8, 8), dpi=100) 
+            self.fig.patch.set_facecolor('#f0f0f0')
+            self.ax1 = self.fig.add_subplot(111)
+            
+            self.canvas = FigureCanvasTkAgg(self.fig, master=self.content_area)
+            self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+        self.ax1.cla()
+        
+        # Nézet beállítása
+        if bins is None:
+            self.ax1.text(total_width/2, total_height/2, "Várakozás adatokra...", 
+                          horizontalalignment='center', verticalalignment='center', color='gray')
+            self.ax1.set_xlim(0, 40)
+            self.ax1.set_ylim(0, 40)
+        else:
+            self.ax1.set_xlim(-margin, total_width + margin)
+            self.ax1.set_ylim(-margin, total_height + margin)
+        
+        self.ax1.set_aspect("equal")
+        self.ax1.invert_yaxis()
+        self.ax1.axis('off') 
+
+        base_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+        color_iterator = iter(base_colors)
+
+        if bins:
+            for i, bin_obj in enumerate(bins):
+                row = i // cols
+                col = i % cols
+                bin_offset_x = col * (bin_w + gap)
+                bin_offset_y = row * (bin_h + gap)
+
+                # Láda keret
+                bin_rect = plt.Rectangle((bin_offset_x, bin_offset_y), bin_w, bin_h, facecolor="white", edgecolor="#333", linewidth=1.5)
+                self.ax1.add_patch(bin_rect)
+                self.ax1.text(bin_offset_x, bin_offset_y - 1, f"Láda {bin_obj.id}", fontsize=9, color="#555", weight="bold")
+
+                for square in bin_obj.squares:
+                    try:
+                        color = next(color_iterator)
+                    except StopIteration:
+                        color_iterator = iter(base_colors)
+                        color = next(color_iterator)
+                    
+                    linear_strip_correction = (bin_obj.id - 1) * 20
+                    local_x = square.x - linear_strip_correction
+                    final_x = bin_offset_x + local_x
+                    final_y = bin_offset_y + square.y
+
+                    rect = plt.Rectangle((final_x, final_y), square.size, square.size, facecolor=color, edgecolor="black", alpha=0.9)
+                    self.ax1.add_patch(rect)
+                    
+                    # Méret kiírása - most már kicsit nagyobb betűvel, ha elfér
+                    if square.size >= 3:
+                        font_size = 7 if square.size < 5 else 9 # Nagyobb betűk nagyobb négyzetekbe
+                        self.ax1.text(final_x + square.size/2, final_y + square.size/2, str(square.size), 
+                                      ha='center', va='center', fontsize=font_size, color='white', weight='bold')
+
+        self.canvas.draw()
 
     def __import_from_txt(self):
         file_path = filedialog.askopenfilename(
@@ -318,51 +275,39 @@ class AppFrame(ttk.Frame):
                 with open(file_path, "r", encoding="utf-8") as file:
                     content = file.read()
 
-                proceed = messagebox.askyesno(
-                    title="Fájl beolvasva",
-                    message=f"A {file_path} fájl kiválasztása sikeres volt.\nSzeretné ezeket az adatokat betölteni?"
-                )
-                # Ha a felhasználó az IGEN-t nyomta
+                proceed = messagebox.askyesno(title="Fájl beolvasva", message=f"Szeretné betölteni az adatokat?")
                 if proceed:
                     self.create_squares(content)
-                # print("A kiválasztott fájl tartalma:")
-                # print(content)
-                # self.convertToVisualizationFormat(content)
             except Exception as e:
-                messagebox.showinfo("Error","Hiba történt a fájl beolvasása során:", e)
-        # else:
-        #     messagebox.showinfo("Figyelmeztetés","Nem lett fájl kiválasztva.")
+                messagebox.showinfo("Error", f"Hiba történt: {e}")
 
     def create_squares(self, content):
         lines = content.splitlines()
         self.squares = []
-        for line in lines:
-            try:
-                size = int(line.strip())
-                if size > 0:
-                    square = Square(size)
-                    self.squares.append(square)
-            except ValueError:
-                messagebox(f"Hiba történt a betöltés során!")
-        # print(f"{len(self.squares)} négyzet lett létrehozva.")
-        sizes = ""
-        for square in self.squares:
-            sizes += f"{square.size} "
-        self.imported_squares_label.config(text=f"Importált négyzetek: {sizes}")
+        try:
+            for line in lines:
+                val = line.strip()
+                if val:
+                    size = int(val)
+                    if size > 0:
+                        self.squares.append(Square(size))
+        except ValueError:
+            messagebox.showerror("Hiba", "Érvénytelen fájlformátum!")
+            return
+
+        sizes_str = ", ".join([str(s.size) for s in self.squares])
+        
+        # Most már a TELJES listát kiírjuk, nem vágjuk le 50 karakternél
+        self.imported_squares_label.config(text=f"{len(self.squares)} db elem:\n{sizes_str}")
 
         self.needed_bins = self.calculate_needed_bins()
-
-        self.extra_information_label.config(
-            text=f"Ládák száma: 0 \n Szükséges ládák száma: {self.needed_bins}")
+        self.extra_information_label.config(text=f"Szükséges ládák (min): {self.needed_bins}\n\nFuttatásra kész.")
 
     def calculate_needed_bins(self):
         if self.squares is None or len(self.squares) == 0:
-            return
+            return 0
         total_area = sum([square.size * square.size for square in self.squares])
         needed_bins = total_area // (20 * 20)
         if total_area % (20 * 20) != 0:
             needed_bins += 1
         return needed_bins
-
-        
-    
