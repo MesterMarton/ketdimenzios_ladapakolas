@@ -120,14 +120,27 @@ class AppFrame(ttk.Frame):
         if self.squares == None or len(self.squares) == 0:
             messagebox.showwarning("Figyelmeztetés", "Nincsenek importált négyzetek!")
             return
-        # messagebox.showinfo("Indítás", "Az algoritmus elindult!")
+
         if self.algorithm == "heuristic":
-            a = HeuristicSolver( self.squares, self.option)
-            # a = HeuristicSolver([Square(5), Square(3), Square(7), Square(2), Square(6)], self.option)
+            a = HeuristicSolver(self.squares, self.option)
             a.run()
-            # self.__display_bins(a.bins)
-            # print(f"Number of bins used: {len(a.bins)}")
-            self.extra_information_label.config(text=f"Ládák száma: {len(a.bins)} \n Szükséges ládák száma: {self.needed_bins}")
+            
+            # Alapszöveg
+            info_text = f"Ládák száma: {len(a.bins)} \n Szükséges ládák száma: {self.needed_bins}"
+
+            # !!! ÚJ RÉSZ: SPLIT ADATOK MEGJELENÍTÉSE !!!
+            # Megnézzük, hogy létezik-e a split_log és van-e benne adat
+            if hasattr(a, 'split_log') and a.split_log:
+                # Listák szöveggé alakítása (pl: "10, 8, 5")
+                g1_str = ", ".join(map(str, a.split_log["Group 1"]))
+                g2_str = ", ".join(map(str, a.split_log["Group 2"]))
+                
+                # Hozzáfűzés az info szöveghez
+                info_text += f"\n\n--- Szétvágás eredménye ---\n1. csoport: {g1_str}\n2. csoport: {g2_str}"
+
+            # Frissítjük a címkét az új szöveggel
+            self.extra_information_label.config(text=info_text)
+            
             self.__display_bins(a.bins)
 
         # else if self.algorithm == "genetic":

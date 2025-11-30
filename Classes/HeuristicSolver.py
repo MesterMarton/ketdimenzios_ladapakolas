@@ -1,8 +1,9 @@
+import random # Szükséges az importálás
 from Classes.Bin import Bin
 from Classes.Square import Square
 
 class HeuristicSolver:
-    def __init__(self, squares=None, option = None):
+    def __init__(self, squares=None, option=None):
         self.squares = squares
         self.option = option
         self.bins = []
@@ -14,37 +15,87 @@ class HeuristicSolver:
             raise ValueError("Squares list is not initialized.")
         
     def run(self):
-        self.sort_squares_by_size()
+        # A kiválasztott opció alapján döntünk a futtatásról
         
-        # Itt választjuk szét a két logikát
-        if self.option == "FFD - Top Left":
-            self.first_fit(bottom_up=False)
-        elif self.option == "FFD - Bottom Left":
-            self.first_fit(bottom_up=True)
+        # Hagyományos FFD algoritmusok
+        if "FFD" in self.option:
+            self.sort_squares_by_size()
+            if "Top Left" in self.option:
+                self.first_fit(bottom_up=False)
+            elif "Bottom Left" in self.option:
+                self.first_fit(bottom_up=True)
+                
+        # Az új "Lokális javító" (Split) algoritmusok
+        elif "Split" in self.option:
+            # Itt a rendezés a csoportbontás után történik
+            if "Top Left" in self.option:
+                self.split_and_fit(bottom_up=False)
+            elif "Bottom Left" in self.option:
+                self.split_and_fit(bottom_up=True)
 
-    def first_fit(self, bottom_up=False):
-        for square in self.squares:
-            placed = False
-            for bin in self.bins:
-                # Ha bottom_up igaz, akkor az új keresőt használjuk
-                if bottom_up:
+    # Segédfüggvény egy darab négyzet elhelyezésére
+    def place_square(self, square, bottom_up=False):
+        placed = False
+        for bin in self.bins:
+            # Irány kiválasztása
+            if bottom_up:
+                # Feltételezve, hogy megírtad az előző lépésben a find_empty_place_bottom_left-et
+                if hasattr(bin, 'find_empty_place_bottom_left'):
                     success = bin.find_empty_place_bottom_left(square)
                 else:
+                    # Ha nincs megírva, fallback a simára (vagy hiba)
                     success = bin.find_empty_place(square)
-                
-                if success:
-                    placed = True
-                    break
-            
-            if not placed:
-                new_bin = Bin(len(self.bins) + 1)
-                self.bins.append(new_bin)
-                # Az új ládában is a megfelelő irány szerint keresünk
-                if bottom_up:
-                    new_bin.find_empty_place_bottom_left(square)
-                else:
-                    new_bin.find_empty_place(square)
+            else:
+                success = bin.find_empty_place(square)
 
-# h = HeuristicSolver([Square(5), Square(3), Square(7), Square(2), Square(6)], "first_fit")
-# h.run()
-# print(f"Number of bins used: {len(h.bins)}")
+            if success:
+                placed = True
+                break
+        
+        # Ha egyik ládába sem fért be, újat nyitunk
+        if not placed:
+            new_bin = Bin(len(self.bins) + 1)
+            self.bins.append(new_bin)
+            if bottom_up and hasattr(new_bin, 'find_empty_place_bottom_left'):
+                new_bin.find_empty_place_bottom_left(square)
+            else:
+                new_bin.find_empty_place(square)
+
+    def first_fit(self, bottom_up=False):
+        self.bins = [] # Biztos ami biztos, nullázzuk a ládákat
+        for square in self.squares:
+            self.place_square(square, bottom_up)
+
+    # ... (a fájl eleje és többi része változatlan) ...
+
+    def split_and_fit(self, bottom_up=False):
+        # 1. Véletlenszerű csoportbontás
+        group1 = []
+        group2 = []
+        for s in self.squares:
+            if random.random() < 0.5:
+                group1.append(s)
+            else:
+                group2.append(s)
+        
+        # !!! ITT MENTJÜK EL AZ EREDMÉNYT A MEGJELENÍTÉSHEZ !!!
+        # Csak a méreteket tároljuk el listában, hogy kiírható legyen
+        self.split_log = {
+            "Group 1": [s.size for s in group1],
+            "Group 2": [s.size for s in group2]
+        }
+        
+        # 2. Mindkét csoport csökkenő sorrendbe rendezése
+        group1.sort(key=lambda s: s.size, reverse=True)
+        group2.sort(key=lambda s: s.size, reverse=True)
+
+        # 3. Ládák ürítése
+        self.bins = []
+
+        # 4. Első csoport elhelyezése
+        for s in group1:
+            self.place_square(s, bottom_up)
+            
+        # 5. Második csoport elhelyezése
+        for s in group2:
+            self.place_square(s, bottom_up)
